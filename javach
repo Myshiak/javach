@@ -1,0 +1,54 @@
+#!/usr/bin/bash
+function other_files() {
+	for i in $(find $1 -name "*")
+	do
+		if [[ -f $i ]] && [[ -z $(echo $i | grep .java) ]]
+		then
+			echo $i
+		fi
+	done
+}
+if [[ -z $1 ]]
+then
+	echo "Javach v1.0"
+	echo "Usage:"
+	echo " javach project/dir output/dir"
+	echo " javach project/dir"
+else
+	echo "Searching for classes in $1..."
+	classes=$(find $1 -name "*.java")
+	if [[ -n $classes ]]
+	then
+		echo "Found:"
+		for c in $classes
+		do
+			echo $c
+		done
+		todir=bin
+		if [[ -n $2 ]]
+		then
+			todir=$2
+		fi
+		if [[ -e $PWD/$todir ]]
+		then
+			echo "error: directory $todir exists"
+		else
+			echo "Compiling..."
+			javac -d $todir $classes && \
+			echo "Successfully compiled to $PWD/$todir" && \
+			of=$(other_files $1) && \
+			if [[ -n $of ]]
+			then
+				echo "Copying other files to $todir..."
+				for f in $of
+				do
+					echo $f
+					cp $f $todir/$f
+				done
+				echo "Done"
+			fi
+		fi
+	else
+		echo "error: no source files"
+	fi
+fi
